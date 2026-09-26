@@ -4,7 +4,7 @@ param()
 $ErrorActionPreference = 'Stop'
 $minimumNode = [version]'20.19.0'
 $artifactUrl = 'https://raw.githubusercontent.com/MaazSohail11/PDF-Free-Editor-SDK-/main/maazsohail11-pdf-editor-sdk-0.9.0.tgz'
-$expectedSha256 = '780F7A397D272E5BCDA99E57C062632CE70AFE303D4A77EB651E13AE57358B67'
+$expectedSha256 = '0D9617E94CAA5443FCE8BBAA57EDDC0E9BCAFE7F80BBEE45856D1130BE18DF64'
 $contact = 'contact@pdffreeeditor.com'
 
 Write-Host ''
