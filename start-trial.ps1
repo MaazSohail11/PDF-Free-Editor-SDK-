@@ -37,7 +37,7 @@ if ($licenseAnswer -eq 'Y') {
   exit 0
 }
 
-$root = Join-Path ([IO.Path]::GetTempPath()) 'pdf-free-editor-sdk-trial'
+$root = Join-Path ([IO.Path]::GetTempPath()) ("pdf-free-editor-sdk-trial-" + [Guid]::NewGuid().ToString('N'))
 $archive = Join-Path $root 'trial.zip'
 $hostHtml = Join-Path $root 'index.html'
 $hostServer = Join-Path $root 'host-server.mjs'
@@ -45,7 +45,6 @@ $log = Join-Path $root 'trial-server.log'
 $errorLog = Join-Path $root 'trial-server-error.log'
 
 try {
-  if (Test-Path $root) { Remove-Item -LiteralPath $root -Recurse -Force }
   New-Item -ItemType Directory -Path $root | Out-Null
   Write-Host 'Downloading the sanitized watermarked SDK artifact...' -ForegroundColor Cyan
   Invoke-WebRequest -Uri $artifactUrl -OutFile $archive -UseBasicParsing
