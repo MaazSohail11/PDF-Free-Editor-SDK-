@@ -89,12 +89,14 @@ fileInput.onchange=event=>{const file=event.target.files?.[0];if(!file)return;in
 ['dragenter','dragover'].forEach(type=>dropcard.addEventListener(type,event=>{event.preventDefault();dropcard.classList.add('dragover')}));
 ['dragleave','drop'].forEach(type=>dropcard.addEventListener(type,event=>{event.preventDefault();dropcard.classList.remove('dragover')}));
 dropcard.addEventListener('drop',event=>{const file=event.dataTransfer.files?.[0];if(file?.type==='application/pdf'){const transfer=new DataTransfer();transfer.items.add(file);fileInput.files=transfer.files;fileInput.dispatchEvent(new Event('change'))}else status.textContent='Please drop a PDF file.'});
-const setPageBarOpen=(open)=>{const title=open?'Open pages':'Collapse pages';const button=[...document.querySelectorAll('button')].find((candidate)=>candidate.getAttribute('title')===title);if(button)button.click()}; let settingsOpen=false;
-document.getElementById('settingsToggle').onclick=()=>{settingsOpen=!settingsOpen;document.getElementById('panel').classList.toggle('open',settingsOpen);setPageBarOpen(!settingsOpen)};
+const setPageBarOpen=(open)=>{const title=open?'Open pages':'Collapse pages';const button=[...document.querySelectorAll('button')].find((candidate)=>candidate.getAttribute('title')===title);if(button){button.click();return true}return false}; let settingsOpen=false; let barObserver=null;
+const syncBars=()=>{if(barObserver){barObserver.disconnect();barObserver=null}if(!settingsOpen){setPageBarOpen(true);return}if(setPageBarOpen(false))return;barObserver=new MutationObserver(()=>{if(settingsOpen&&setPageBarOpen(false)){barObserver.disconnect();barObserver=null}});barObserver.observe(document.getElementById('editor'),{childList:true,subtree:true});[100,300,700,1200].forEach((delay)=>setTimeout(()=>{if(settingsOpen)setPageBarOpen(false)},delay))};
+document.getElementById('settingsToggle').onclick=()=>{settingsOpen=!settingsOpen;document.getElementById('panel').classList.toggle('open',settingsOpen);syncBars()};
 ['header','footer','top','bottom','prebuilt','theme'].forEach(id=>document.getElementById(id).addEventListener('change',()=>instance?.updateOptions(options())));
 unmountButton.onclick=()=>{instance?.unmount();instance=null;dropzone.classList.remove('hidden');unmountButton.disabled=true;status.textContent='Choose a PDF to begin.'};
 </script>
 '@
+  $hostPage = $hostPage.Replace('z-index:3}#topbar', 'z-index:1001}#topbar').Replace('z-index:4;top:54px', 'z-index:1000;top:54px')
   Set-Content -LiteralPath $hostHtml -Value $hostPage -Encoding UTF8
 
   $serverSource = @'
