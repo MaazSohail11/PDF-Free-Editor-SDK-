@@ -12,5 +12,23 @@ Install the artifact from a downloaded copy with:
 npm install .\maazsohail11-pdf-editor-sdk-0.9.0.tgz react react-dom
 ```
 
+To run the included source-free local Playground without PowerShell:
+
+```cmd
+npm install
+start-trial.cmd
+```
+
+Or on macOS/Linux:
+
+```sh
+npm install
+./start-trial.sh
+```
+
+The host files serve only the packaged SDK artifact. They do not include the
+private editor source, website source, development configuration, tests, or
+source maps.
+
 The trial build is watermarked on every exported page. The source project and
 clean/licensed branch are not published here.
