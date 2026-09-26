@@ -32,3 +32,14 @@ source maps.
 
 The trial build is watermarked on every exported page. The source project and
 clean/licensed branch are not published here.
+
+To use the SDK in another application, install the same tarball from that
+application's directory:
+
+```cmd
+npm install C:\path\to\maazsohail11-pdf-editor-sdk-0.9.0.tgz react react-dom
+```
+
+The application can then import `VanillaPDFEditor` from
+`@maazsohail11/pdf-editor-sdk`. The included Playground is already wired to
+load the package automatically.
