@@ -89,7 +89,8 @@ fileInput.onchange=event=>{const file=event.target.files?.[0];if(!file)return;in
 ['dragenter','dragover'].forEach(type=>dropcard.addEventListener(type,event=>{event.preventDefault();dropcard.classList.add('dragover')}));
 ['dragleave','drop'].forEach(type=>dropcard.addEventListener(type,event=>{event.preventDefault();dropcard.classList.remove('dragover')}));
 dropcard.addEventListener('drop',event=>{const file=event.dataTransfer.files?.[0];if(file?.type==='application/pdf'){const transfer=new DataTransfer();transfer.items.add(file);fileInput.files=transfer.files;fileInput.dispatchEvent(new Event('change'))}else status.textContent='Please drop a PDF file.'});
-document.getElementById('settingsToggle').onclick=()=>document.getElementById('panel').classList.toggle('open');
+const setPageBarOpen=(open)=>{const title=open?'Open pages':'Collapse pages';const button=[...document.querySelectorAll('button')].find((candidate)=>candidate.getAttribute('title')===title);if(button)button.click()}; let settingsOpen=false;
+document.getElementById('settingsToggle').onclick=()=>{settingsOpen=!settingsOpen;document.getElementById('panel').classList.toggle('open',settingsOpen);setPageBarOpen(!settingsOpen)};
 ['header','footer','top','bottom','prebuilt','theme'].forEach(id=>document.getElementById(id).addEventListener('change',()=>instance?.updateOptions(options())));
 unmountButton.onclick=()=>{instance?.unmount();instance=null;dropzone.classList.remove('hidden');unmountButton.disabled=true;status.textContent='Choose a PDF to begin.'};
 </script>
