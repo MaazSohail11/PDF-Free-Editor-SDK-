@@ -43,6 +43,8 @@ $hostHtml = Join-Path $root 'index.html'
 $hostServer = Join-Path $root 'host-server.mjs'
 $log = Join-Path $root 'trial-server.log'
 $errorLog = Join-Path $root 'trial-server-error.log'
+$port = 5188
+while (Get-NetTCPConnection -LocalPort $port -ErrorAction SilentlyContinue) { $port += 1 }
 
 try {
   New-Item -ItemType Directory -Path $root | Out-Null
@@ -90,17 +92,17 @@ unmountButton.onclick=()=>{instance?.unmount();instance=null;unmountButton.disab
 
   $serverSource = @'
 import { createServer } from 'node:http'; import { readFile } from 'node:fs/promises'; import { resolve, extname, sep } from 'node:path'; import { build } from 'esbuild'; import { createRequire } from 'node:module'; import { PDFDocument, StandardFonts } from 'pdf-lib';
-const root=process.cwd(), port=5188, require=createRequire(import.meta.url); const vendor=await build({entryPoints:{react:'react','react-dom-client':'react-dom/client','react-dom':'react-dom','jsx-runtime':'react/jsx-runtime'},absWorkingDir:root,bundle:true,splitting:true,format:'esm',platform:'browser',outdir:resolve(root,'.vendor'),write:false,define:{'process.env.NODE_ENV':'"production"'}}); const vendorFiles=new Map(vendor.outputFiles.map(f=>[f.path.split(/[\\/]/).pop(),f.contents])); const pdf=await PDFDocument.create(),font=await pdf.embedFont(StandardFonts.Helvetica); const page=pdf.addPage([612,792]); page.drawText('PDF Free Editor SDK trial document',{x:40,y:730,size:18,font}); page.drawText('Local test file — no customer data.',{x:40,y:690,size:12,font}); const fixture=await pdf.save(); const types={'.html':'text/html','.js':'text/javascript','.mjs':'text/javascript','.css':'text/css','.pdf':'application/pdf','.ttf':'font/ttf'};
+const root=process.cwd(), port=Number(process.argv[2]||5188), require=createRequire(import.meta.url); const vendor=await build({entryPoints:{react:'react','react-dom-client':'react-dom/client','react-dom':'react-dom','jsx-runtime':'react/jsx-runtime'},absWorkingDir:root,bundle:true,splitting:true,format:'esm',platform:'browser',outdir:resolve(root,'.vendor'),write:false,define:{'process.env.NODE_ENV':'"production"'}}); const vendorFiles=new Map(vendor.outputFiles.map(f=>[f.path.split(/[\\/]/).pop(),f.contents])); const pdf=await PDFDocument.create(),font=await pdf.embedFont(StandardFonts.Helvetica); const page=pdf.addPage([612,792]); page.drawText('PDF Free Editor SDK trial document',{x:40,y:730,size:18,font}); page.drawText('Local test file — no customer data.',{x:40,y:690,size:12,font}); const fixture=await pdf.save(); const types={'.html':'text/html','.js':'text/javascript','.mjs':'text/javascript','.css':'text/css','.pdf':'application/pdf','.ttf':'font/ttf'};
 createServer(async(req,res)=>{try{const path=decodeURIComponent(new URL(req.url,'http://localhost').pathname);res.setHeader('Cache-Control','no-store');if(path==='/fixture.pdf'){res.setHeader('Content-Type','application/pdf');return res.end(fixture)}if(path.startsWith('/vendor/')){const data=vendorFiles.get(path.slice(8));if(!data)throw Error('Missing vendor');res.setHeader('Content-Type','text/javascript');return res.end(data)}let target=path.startsWith('/dist-sdk/')?resolve(root,'node_modules/@maazsohail11/pdf-editor-sdk',path.slice(1)):resolve(root,path==='/'?'index.html':'.'+path);if(!target.startsWith(root+sep))throw Error('Outside root');res.setHeader('Content-Type',types[extname(target)]||'application/octet-stream');res.end(await readFile(target))}catch{res.writeHead(404);res.end('Not found')}}).listen(port,'127.0.0.1',()=>console.log(`Trial SDK: http://127.0.0.1:${port}/`));
 '@
   Set-Content -LiteralPath $hostServer -Value $serverSource -Encoding UTF8
 
-  $server = Start-Process -FilePath 'node.exe' -ArgumentList 'host-server.mjs' -WorkingDirectory $root -RedirectStandardOutput $log -RedirectStandardError $errorLog -WindowStyle Hidden -PassThru
+  $server = Start-Process -FilePath 'node.exe' -ArgumentList @('host-server.mjs', [string]$port) -WorkingDirectory $root -RedirectStandardOutput $log -RedirectStandardError $errorLog -WindowStyle Hidden -PassThru
   $ready = $false
   for ($attempt = 0; $attempt -lt 30; $attempt++) {
     Start-Sleep -Milliseconds 500
     try {
-      $probe = Invoke-WebRequest -Uri 'http://127.0.0.1:5188/' -UseBasicParsing -TimeoutSec 2
+      $probe = Invoke-WebRequest -Uri "http://127.0.0.1:$port/" -UseBasicParsing -TimeoutSec 2
       if ($probe.StatusCode -eq 200) { $ready = $true; break }
     } catch { }
   }
@@ -111,7 +113,7 @@ createServer(async(req,res)=>{try{const path=decodeURIComponent(new URL(req.url,
 
   Write-Host ''
   Write-Host 'Trial SDK is ready.' -ForegroundColor Green
-  Write-Host 'Open: http://127.0.0.1:5188/' -ForegroundColor Green
+  Write-Host "Open: http://127.0.0.1:$port/" -ForegroundColor Green
   Write-Host 'The editor runs locally; exported PDFs include the trial watermarks.'
   Write-Host "Server process ID: $($server.Id)"
   Write-Host "To stop it later: Stop-Process -Id $($server.Id)"
